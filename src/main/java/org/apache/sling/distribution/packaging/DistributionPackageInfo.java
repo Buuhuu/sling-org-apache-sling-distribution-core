@@ -57,6 +57,11 @@ public final class DistributionPackageInfo extends ValueMapDecorator implements 
      */
     public static final String PROPERTY_REQUEST_TYPE = "request.type";
 
+    public static final String PROPERTY_REFERENCE_REQUIRED = "reference-required";
+
+    public static final String PROPERTY_REMOTE_PACKAGE_ID = "remote.package.id";
+
+    public static final String PROPERTY_HEADER_REQUIRED = "header-required";
 
     /**
      * Creates a new wrapper around a given map.

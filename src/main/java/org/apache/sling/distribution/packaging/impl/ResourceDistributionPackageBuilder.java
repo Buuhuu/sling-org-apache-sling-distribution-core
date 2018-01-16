@@ -45,6 +45,7 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.distribution.DistributionRequest;
 import org.apache.sling.distribution.common.DistributionException;
 import org.apache.sling.distribution.packaging.DistributionPackage;
+import org.apache.sling.distribution.packaging.DistributionPackageInfo;
 import org.apache.sling.distribution.serialization.DistributionContentSerializer;
 import org.apache.sling.distribution.serialization.DistributionExportFilter;
 import org.apache.sling.distribution.serialization.DistributionExportOptions;
@@ -76,8 +77,9 @@ public class ResourceDistributionPackageBuilder extends AbstractDistributionPack
                                               MemoryUnit memoryUnit,
                                               boolean useOffHeapMemory,
                                               String digestAlgorithm, String[] nodeFilters,
-                                              String[] propertyFilters) {
-        super(type, distributionContentSerializer.getContentType(), distributionContentSerializer.isDeletionSupported());
+                                              String[] propertyFilters,
+                                              boolean includeHeader) {
+        super(type, distributionContentSerializer.getContentType(), distributionContentSerializer.isDeletionSupported(), includeHeader);
         this.distributionContentSerializer = distributionContentSerializer;
         this.nodeFilters = VltUtils.parseFilters(nodeFilters);
         this.propertyFilters = VltUtils.parseFilters(propertyFilters);
@@ -193,7 +195,7 @@ public class ResourceDistributionPackageBuilder extends AbstractDistributionPack
             Map<String, Object> info = new HashMap<String, Object>();
             DistributionPackageUtils.readInfo(stream, info);
             log.debug("read header {}", info);
-            Object remoteId = info.get(DistributionPackageUtils.PROPERTY_REMOTE_PACKAGE_ID);
+            Object remoteId = info.get(DistributionPackageInfo.PROPERTY_REMOTE_PACKAGE_ID);
             if (remoteId != null) {
                 name = remoteId.toString();
                 if (name.contains("/")) {
