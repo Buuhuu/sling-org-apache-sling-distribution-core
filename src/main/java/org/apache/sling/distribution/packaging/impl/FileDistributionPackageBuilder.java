@@ -106,7 +106,7 @@ public class FileDistributionPackageBuilder extends AbstractDistributionPackageB
             if (digestAlgorithm != null) {
                 digestMessage = readDigestMessage((DigestOutputStream) outputStream);
             }
-            distributionPackage = new FileDistributionPackage(file, getType(), digestAlgorithm, digestMessage);
+            distributionPackage = new FileDistributionPackage(file, getType(), distributionContentSerializer.getContentType(), digestAlgorithm, digestMessage);
         } catch (IOException e) {
             throw new DistributionException(e);
         } finally {
@@ -142,7 +142,7 @@ public class FileDistributionPackageBuilder extends AbstractDistributionPackageB
             outputStream.flush();
 
             String digestMessage = readDigestMessage(outputStream);
-            distributionPackage = new FileDistributionPackage(file, getType(), digestAlgorithm, digestMessage);
+            distributionPackage = new FileDistributionPackage(file, getType(), distributionContentSerializer.getContentType(), digestAlgorithm, digestMessage);
         } catch (Exception e) {
             throw new DistributionException(e);
         } finally {
@@ -165,6 +165,6 @@ public class FileDistributionPackageBuilder extends AbstractDistributionPackageB
 
     @Override
     protected DistributionPackage getPackageInternal(@Nonnull ResourceResolver resourceResolver, @Nonnull String id) {
-        return new FileDistributionPackage(new File(tempDirectory, id), getType(), null, null);
+        return new FileDistributionPackage(new File(tempDirectory, id), getType(), distributionContentSerializer.getContentType(), null, null);
     }
 }

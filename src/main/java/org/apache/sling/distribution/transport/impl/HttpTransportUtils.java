@@ -20,20 +20,25 @@
 package org.apache.sling.distribution.transport.impl;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
+import org.apache.sling.distribution.packaging.DistributionPackageInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 class HttpTransportUtils {
 
-    public static InputStream fetchNextPackage(Executor executor, URI distributionURI, HttpConfiguration httpConfiguration)
+    public static InputStream fetchNextPackage(Executor executor, URI distributionURI, HttpConfiguration httpConfiguration, ContentType acceptedContentType,
+            Map<String, Object> info)
             throws URISyntaxException, IOException {
         URI fetchUri = getFetchUri(distributionURI);
         Request fetchReq = Request.Post(fetchUri)
@@ -41,6 +46,14 @@ class HttpTransportUtils {
                 .socketTimeout(httpConfiguration.getSocketTimeout())
                 .addHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE)
                 .useExpectContinue();
+
+        if (acceptedContentType != null) {
+            fetchReq = fetchReq.addHeader(HttpHeaders.ACCEPT, acceptedContentType.getMimeType());
+            if (acceptedContentType.getCharset() != null) {
+                fetchReq = fetchReq.addHeader(HttpHeaders.ACCEPT_CHARSET, acceptedContentType.getCharset().toString());
+            }
+        }
+
         HttpResponse httpResponse = executor.execute(fetchReq).returnResponse();
 
         if (httpResponse.getStatusLine().getStatusCode() != 200) {
@@ -48,6 +61,14 @@ class HttpTransportUtils {
         }
 
         HttpEntity entity = httpResponse.getEntity();
+
+        ContentType contentType = ContentType.get(entity);
+        if (contentType != null) {
+            info.put(DistributionPackageInfo.PROPERTY_CONTENT_TYPE, contentType.toString());
+            if (acceptedContentType != null) {
+
+            }
+        }
 
         return entity.getContent();
     }

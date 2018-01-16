@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.http.entity.ContentType;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -87,8 +86,6 @@ public class DistributionPackageExporterServlet extends SlingAllMethodsServlet {
 
         final long start = System.currentTimeMillis();
 
-        response.setContentType(ContentType.APPLICATION_OCTET_STREAM.toString());
-
         DistributionRequest distributionRequest = RequestUtils.fromServletRequest(request);
         ResourceResolver resourceResolver = request.getResourceResolver();
 
@@ -104,7 +101,7 @@ public class DistributionPackageExporterServlet extends SlingAllMethodsServlet {
                     int bytesCopied = -1;
                     try {
                         inputStream = DistributionPackageUtils.createStreamWithHeader(distributionPackage);
-
+                        response.setContentType(distributionPackage.getContentType());
                         bytesCopied = IOUtils.copy(inputStream, response.getOutputStream());
                     } catch (IOException e) {
                         log.error("cannot process package", e);

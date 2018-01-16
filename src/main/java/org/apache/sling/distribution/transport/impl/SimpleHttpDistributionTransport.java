@@ -23,12 +23,14 @@ import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
+import org.apache.http.ParseException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
@@ -145,7 +147,7 @@ public class SimpleHttpDistributionTransport implements DistributionTransport {
                 try {
                     inputStream = DistributionPackageUtils.createStreamWithHeader(distributionPackage);
 
-                    req = req.bodyStream(inputStream, ContentType.APPLICATION_OCTET_STREAM);
+                    req = req.bodyStream(inputStream, ContentType.parse(distributionPackage.getContentType()));
 
                     Response response = executor.execute(req);
                     response.returnContent(); // throws an error if HTTP status is >= 300
@@ -176,11 +178,19 @@ public class SimpleHttpDistributionTransport implements DistributionTransport {
 
         try {
             URI distributionURI = RequestUtils.appendDistributionRequest(distributionEndpoint.getUri(), distributionRequest);
-
+            String contentTypeProperty = distributionContext.get(DistributionPackageInfo.PROPERTY_CONTENT_TYPE, String.class);
+            ContentType contentType = null;
+            if (contentTypeProperty != null) {
+                try {
+                    contentType = ContentType.parse(contentTypeProperty);
+                } catch (ParseException e) {
+                    log.info("Couldn't parse expected content type of DistributionRequest.", e);
+                }
+            }
             Executor executor = getExecutor(distributionContext);
-
+            Map<String, Object> info = new HashMap<String, Object>();
             // TODO : add queue parameter
-            InputStream inputStream = HttpTransportUtils.fetchNextPackage(executor, distributionURI, httpConfiguration);
+            InputStream inputStream = HttpTransportUtils.fetchNextPackage(executor, distributionURI, httpConfiguration, contentType, info);
 
             if (inputStream == null) {
                 return null;
@@ -188,6 +198,7 @@ public class SimpleHttpDistributionTransport implements DistributionTransport {
 
             try {
                 final DistributionPackage responsePackage = packageBuilder.readPackage(resourceResolver, inputStream);
+                responsePackage.getInfo().putAll(info);
                 responsePackage.getInfo().put(PACKAGE_INFO_PROPERTY_ORIGIN_URI, distributionURI);
                 log.debug("pulled package with info {}", responsePackage.getInfo());
 
