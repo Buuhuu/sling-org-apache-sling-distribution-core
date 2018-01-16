@@ -62,6 +62,10 @@ public class FileDistributionPackageBuilderTest {
             }
         }
 
+        @Override public String getContentType() {
+            return "text/plain";
+        }
+
         @Override public void importFromStream(ResourceResolver resourceResolver, InputStream inputStream) throws DistributionException {
             throw new DistributionException("unsupported");
         }
@@ -72,10 +76,6 @@ public class FileDistributionPackageBuilderTest {
 
         @Override public boolean isRequestFiltering() {
             return true;
-        }
-
-        @Override public String getContentType() {
-            return "text/plain";
         }
 
         @Override public boolean isDeletionSupported() {
